@@ -1,26 +1,30 @@
-function genplotly(id) {
+function buildPlotly(id) {
+    //Reading the data from the json
+    d3.json("samples.json").then (sampledata =>{
+        console.log(sampledata)
 
-    d3.json("samples.json").then((data)=> {
-        console.log(data)
+        var samples = sampledata.samples[0].otu_ids;
+        console.log(samples)
 
-        var samplefil = data.samples.filter(s => s.id.toString() === id)[0];
-        console.log(samplefil);
+        var values = sampledata.samples[0].sample_values.slice(0,10).reverse();
+        console.log(values)
 
+        //Top 10 otu ids
+        var top_ten = ( sampledata.samples[0].otu_ids.slice(0,10)).reverse();
+        //Formating for plot
+        var top_ten_ids = top_ten.map(d => "OTU" +d);
+        console.log(`otu lables: ${top_ten_ids}`)
 
-        var topsample = samplefil.sample_values.slice(0, 10).reverse();
-
-        var topotu = (samplefil.otu_ids.slice(0, 10)).reverse();
-
-        var otuid = topotu.map(d => "OTU" + d)
-
-        var toplabels = samplefil.otu_labels.slice(0, 10)
+        //Grabbing the labels for the top 10 
+        var top_ten_lables = sampledata.samples[0].otu_labels.slice(0,10);
+        console.log(`otu lables: ${top_ten_lables}`)
         
         // creating bar_trace
         
         var bar_trace = {
-            x: topsample,
-            y: otuid,
-            text: toplabels,
+            x: values,
+            y: top_ten_ids,
+            text: top_ten_lables,
             type: 'bar',
             orientation: 'h',
         };
@@ -42,13 +46,13 @@ function genplotly(id) {
         Plotly.newPlot("bar", bar_data, layout);
 
 
-        var trace2 = {
-            x: samplefil,
-            y: topsample,
+        var bubble_trace = {
+            x: samples,
+            y: values,
             mode: "markers",
             marker:{
                 size: values,
-                color: ids
+                color: samples
             }
         }
         var layout2 = {
@@ -57,9 +61,9 @@ function genplotly(id) {
             width:800
         };
 
-        var data2 = [trace2]
+        var bubble_data = [bubble_trace]
 
-        Plotly.newPlot("bubble", data2, layout2)
+        Plotly.newPlot("bubble", bubble_data, layout2)
         });
 
 };
@@ -86,7 +90,7 @@ function getData(id) {
 
 //Func. for the change event
 function optionChanged(id) {
-    genplotly(id);
+    buildPlotly(id);
     getData(id);
 }
 
@@ -105,7 +109,7 @@ function init() {
         });
 
         //Displaying plots
-        genplotly(data.names[0]);
+        buildPlotly(data.names[0]);
         getData(data.names[0]);
     });
 }
